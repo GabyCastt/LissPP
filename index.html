@@ -328,7 +328,9 @@
               Regalo Interactivo para
               <span id="friendNameView">Mi amiga</span> 🎂
             </div>
-            <div class="pill">Mini‑juegos + Final robotito estilo Wall‑E</div>
+            <div class="pill">
+              Preparé algunos Mini‑juegos para tí + un final sorpresa!!
+            </div>
           </div>
         </div>
         <button class="btn ghost" id="btnReset">Reiniciar progreso</button>
@@ -345,11 +347,10 @@
       <!-- MENU VIEW -->
       <section class="view show" id="viewMenu">
         <div class="card" style="margin-bottom: 16px">
-          <div class="h">Cómo funciona</div>
+          <div class="h">¿Cómo funciona?</div>
           <div class="muted">
-            Completa los mini‑juegos. Al lograr <b>3 o más</b>, se desbloquea el
-            final sorpresa. Todo corre offline: solo abre este archivo en tu
-            navegador 💻📱
+            Completa los mini‑juegos. Al lograr <b>al menos 5</b>, se desbloquea
+            el final sorpresa. ¡Diviértete! 💜
           </div>
         </div>
         <div class="grid" id="menuGrid">
@@ -845,17 +846,15 @@
           platforms.forEach((p) => {
             ctx.fillRect(p.x, p.y, p.w, p.h);
           });
-          // player (gatito cabeza cuadrada)
-          ctx.fillStyle = "#f3d3d3";
-          ctx.fillRect(player.x, player.y, player.w, player.h);
-          ctx.fillStyle = "#333";
-          ctx.fillRect(player.x + 6, player.y + 6, 4, 4);
-          ctx.fillRect(player.x + 16, player.y + 6, 4, 4);
-          // star
-          ctx.fillStyle = "#ffd166";
-          ctx.beginPath();
-          ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-          ctx.fill();
+
+          // Dibujar gatito con emoji
+          ctx.font = "26px Arial";
+          ctx.fillText("🐱", player.x, player.y);
+
+          // Dibujar estrella con emoji
+          ctx.font = "24px Arial";
+          ctx.fillText("⭐", star.x - 12, star.y + 8);
+
           // tip
           ctx.fillStyle = "rgba(255,255,255,.6)";
           ctx.font = "12px monospace";
