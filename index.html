@@ -172,19 +172,17 @@
       }
 
       /* canvas shells */
+      /* Centrar los canvases en el contenedor */
       .game-shell {
-        background: #0f0f10;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        position: relative;
-        overflow: hidden;
-        min-height: 360px;
-        display: grid;
-        place-items: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
-      canvas {
-        image-rendering: pixelated;
-        border-radius: 12px;
+
+      #bgCanvas,
+      #revealCanvas {
+        position: static; /* Cambia de absolute a static */
+        margin: 0 auto; /* Centrado horizontal */
       }
 
       /* on-screen controls for mobile */
@@ -386,10 +384,8 @@
             </div>
           </div>
           <div class="card">
-            <div class="h">4) Trivia personal</div>
-            <div class="muted">
-              Preguntas sobre BTS, ballenas, gatitos y libros 📚
-            </div>
+            <div class="h">4) Trivia</div>
+            <div class="muted">Preguntas sobre Gaby! 📚</div>
             <div style="margin-top: 10px">
               <button class="btn" data-open="trivia">Jugar</button>
             </div>
@@ -510,24 +506,30 @@
       </section>
 
       <!--REVEAL VIEW -->
+      <!-- REVEAL VIEW -->
       <section class="view" id="viewReveal">
         <div class="topbar">
           <button class="btn ghost" data-back>← Volver</button>
           <div class="badg">Revela 85% de la imagen</div>
         </div>
-        <div class="game-shell" style="height: 420px; position: relative">
-          <canvas
-            id="bgCanvas"
-            width="520"
-            height="360"
-            style="position: absolute; top: 0; left: 0"
-          ></canvas>
-          <canvas
-            id="revealCanvas"
-            width="520"
-            height="360"
-            style="position: absolute; top: 0; left: 0"
-          ></canvas>
+        <div
+          class="game-shell"
+          style="
+            height: 420px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <div style="position: relative">
+            <canvas id="bgCanvas" width="520" height="360"></canvas>
+            <canvas
+              id="revealCanvas"
+              width="520"
+              height="360"
+              style="position: absolute; top: 0; left: 0"
+            ></canvas>
+          </div>
         </div>
         <div class="hint" style="text-align: center; margin-top: 8px">
           Toca o arrastra para "rascar" ✨
@@ -542,8 +544,8 @@
         <div class="card">
           <div class="h">Pista 1</div>
           <div class="muted">
-            El día especial está en formato <b>MMDD</b>. <i>Septiembre</i> y
-            <i>décimo</i> te guían…
+            El día especial está en formato <b>MMDD</b>. <i>Mayo</i> y
+            <i>Inicios</i> te guían…
           </div>
         </div>
         <div class="card">
@@ -1164,7 +1166,7 @@
         // Añadí dos preguntas más
         {
           q: "¿Qué me gusta más leer?",
-          opts: ["Misterio", "Romance", "Fantasía", "Ciencia Ficción"],
+          opts: ["Misterio", "Romance", "Ciencia Ficción", "Fantasía"],
           a: 3,
         },
         {
@@ -1348,7 +1350,7 @@
       document.getElementById("escBtn").addEventListener("click", () => {
         const v = (document.getElementById("escCode").value || "").trim();
         const msg = document.getElementById("escMsg");
-        if (v === "0910") {
+        if (v === "0504") {
           msg.textContent = "¡Abierto! 🎉";
           msg.style.color = "var(--ok)";
           progress.escape = true;
