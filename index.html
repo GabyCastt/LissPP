@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🎉 Feliz Cumple — Mini‑Juegos</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;         /* negro */
+      --text: #ffffff;       /* blanco */
+      --wine: #7f1734;       /* vino */
+      --accent: #9c8df0;     /* toquecito lilac ARMY vibes */
+      --card: #141414;
+      --ok: #2ecc71;
+      --bad: #e74c3c;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: radial-gradient(1200px 600px at 10% -10%, #1c1c1c, var(--bg)); color: var(--text); }
+    a { color: var(--accent); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; }
+    .brand { display:flex; gap:8px; align-items:center; }
+    .brand .logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--wine), #3a0b19); display:grid; place-items:center; box-shadow: 0 6px 20px rgba(127,23,52,.4); }
+    .brand .logo::after { content:"💜"; }
+    .title { font-weight: 700; letter-spacing: .3px; }
+    .pill { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); padding: 6px 10px; border-radius: 999px; font-size: 12px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 16px; }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 16px; box-shadow: 0 20px 40px rgba(0,0,0,.35); }
+    .card .h { font-weight: 700; margin: 6px 0 8px; }
+    .card .muted { opacity: .8; font-size: 14px; }
+    .btn { appearance: none; border: 0; outline: 0; background: var(--wine); color: #fff; padding: 10px 14px; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(127,23,52,.45); transition: transform .05s ease, filter .2s ease; }
+    .btn:hover { filter: brightness(1.1); }
+    .btn:active { transform: translateY(1px); }
+    .btn.ghost { background: transparent; border: 1px solid rgba(255,255,255,.16); box-shadow: none; }
+    .badg { display:inline-flex; align-items:center; gap:6px; font-size: 12px; padding: 6px 10px; border-radius: 999px; border:1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04); }
+
+    .footer { opacity:.8; font-size: 13px; margin: 24px 0; text-align:center; }
+
+    /* views */
+    .view { display: none; }
+    .view.show { display: block; }
+
+    .topbar { display:flex; align-items:center; justify-content: space-between; gap: 8px; margin: 4px 0 14px; }
+    .progress { height: 10px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
+    .progress > div { height: 100%; background: linear-gradient(90deg, var(--wine), #b61c42); width: 0%; transition: width .4s ease; }
+
+    /* canvas shells */
+    .game-shell { background: #0f0f10; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; position: relative; overflow: hidden; min-height: 360px; display:grid; place-items:center; }
+    canvas { image-rendering: pixelated; border-radius: 12px; }
+
+    /* on-screen controls for mobile */
+    .pad { display: grid; grid-template-columns: repeat(3,60px); grid-template-rows: repeat(3,60px); gap: 8px; justify-content:center; margin-top: 10px; }
+    .pad button { width: 60px; height: 60px; border-radius: 12px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:#fff; font-size: 18px; }
+    .pad .invis { visibility: hidden; }
+
+    /* finale robot */
+    .robot { position: relative; width: 220px; height: 180px; }
+    .robot .body { position:absolute; inset: 40px 20px 20px; background: #c9bca6; border: 4px solid #6e5d47; border-radius: 14px; box-shadow: inset 0 6px 0 rgba(0,0,0,.12); }
+    .robot .treads { position:absolute; left: 10px; right: 10px; bottom: 6px; height: 22px; background: #2b2b2b; border-radius: 12px; box-shadow: inset 0 4px 0 rgba(255,255,255,.06); }
+    .robot .eye { position:absolute; top: 0; width: 72px; height: 72px; background: #c9bca6; border: 4px solid #6e5d47; border-radius: 18px; display:grid; place-items:center; box-shadow: inset 0 6px 0 rgba(0,0,0,.12); }
+    .robot .eye.left { left: 34px; }
+    .robot .eye.right { right: 34px; }
+    .robot .pupil { width: 18px; height: 18px; background: radial-gradient(circle at 40% 40%, #fff, #555); border-radius: 50%; animation: blink 5s infinite; }
+    @keyframes blink { 0%, 48%, 52%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.1); } }
+    .robot .arm { position:absolute; top: 70px; width: 18px; height: 70px; background: #c9bca6; border:4px solid #6e5d47; border-radius:10px; }
+    .robot .arm.left { left: 6px; transform: rotate(-10deg); transform-origin: top center; animation: wave 2.4s ease-in-out infinite; }
+    .robot .arm.right { right: 6px; transform: rotate(8deg); transform-origin: top center; }
+    @keyframes wave { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(6deg); } }
+
+    .confetti { position: absolute; inset: 0; pointer-events: none; }
+
+    .hint { font-size: 13px; opacity: .9; }
+    .kbd { padding: 2px 6px; border:1px solid rgba(255,255,255,.2); border-bottom-width:2px; border-radius:6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <div class="title">Regalo Interactivo para <span id="friendNameView">Mi amiga</span> 🎂</div>
+          <div class="pill">Mini‑juegos + Final robotito estilo Wall‑E</div>
+        </div>
+      </div>
+      <button class="btn ghost" id="btnReset">Reiniciar progreso</button>
+    </header>
+
+    <div class="topbar">
+      <div class="badg" id="progressText">Progreso: 0/6</div>
+      <div class="progress" style="flex:1; margin: 0 10px;">
+        <div id="progressBar" style="width:0%"></div>
+      </div>
+      <button class="btn" id="btnFinale" disabled>✨ Ver Final</button>
+    </div>
+
+    <!-- MENU VIEW -->
+    <section class="view show" id="viewMenu">
+      <div class="card" style="margin-bottom:16px">
+        <div class="h">Cómo funciona</div>
+        <div class="muted">Completa los mini‑juegos. Al lograr <b>3 o más</b>, se desbloquea el final sorpresa. Todo corre offline: solo abre este archivo en tu navegador 💻📱</div>
+      </div>
+      <div class="grid" id="menuGrid">
+        <div class="card">
+          <div class="h">1) Plataforma — Gatito salta</div>
+          <div class="muted">Mueve al gatito y alcanza la ⭐. <span class="hint">Controles: <span class="kbd">←</span> <span class="kbd">→</span> <span class="kbd">Espacio</span></span></div>
+          <div style="margin-top:10px"><button class="btn" data-open="platformer">Jugar</button></div>
+        </div>
+        <div class="card">
+          <div class="h">2) Atrapa los regalos</div>
+          <div class="muted">Mueve la canastita para atrapar corazones 🎁</div>
+          <div style="margin-top:10px"><button class="btn" data-open="catch">Jugar</button></div>
+        </div>
+        <div class="card">
+          <div class="h">3) Snake robot</div>
+          <div class="muted">Clásico Snake con un robotito 🤖</div>
+          <div style="margin-top:10px"><button class="btn" data-open="snake">Jugar</button></div>
+        </div>
+        <div class="card">
+          <div class="h">4) Trivia personal</div>
+          <div class="muted">Preguntas sobre BTS, ballenas, gatitos y libros 📚</div>
+          <div style="margin-top:10px"><button class="btn" data-open="trivia">Jugar</button></div>
+        </div>
+        <div class="card">
+          <div class="h">5) Dibujo sorpresa</div>
+          <div class="muted">Rasca para revelar el mensaje 🎨</div>
+          <div style="margin-top:10px"><button class="btn" data-open="reveal">Jugar</button></div>
+        </div>
+        <div class="card">
+          <div class="h">6) Mini Escape Room</div>
+          <div class="muted">Resuelve pistas simples y abre la caja 🔐</div>
+          <div style="margin-top:10px"><button class="btn" data-open="escape">Jugar</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLATFORMER VIEW -->
+    <section class="view" id="viewPlatformer">
+      <div class="topbar"><button class="btn ghost" data-back>← Volver</button><div class="badg">Objetivo: toca la ⭐</div></div>
+      <div class="game-shell">
+        <canvas id="platCanvas" width="540" height="320"></canvas>
+      </div>
+      <div class="pad" id="platPad">
+        <div class="invis"></div>
+        <button data-key="ArrowUp">⤒</button>
+        <div class="invis"></div>
+        <button data-key="ArrowLeft">←</button>
+        <button data-key="Space">⤒</button>
+        <button data-key="ArrowRight">→</button>
+      </div>
+    </section>
+
+    <!-- CATCH VIEW -->
+    <section class="view" id="viewCatch">
+      <div class="topbar"><button class="btn ghost" data-back>← Volver</button><div class="badg">Atrapa 20 corazones</div></div>
+      <div class="game-shell" id="catchShell" style="height:420px">
+        <div id="catchArea" style="position:relative; width: min(520px, 100%); height: 360px; border-radius: 12px; border:1px solid rgba(255,255,255,.12); overflow:hidden; background: linear-gradient(180deg,#12121a,#0a0a0f)">
+          <div id="catcher" style="position:absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 80px; height: 16px; background: var(--wine); border-radius: 10px; box-shadow: 0 6px 16px rgba(127,23,52,.4)"></div>
+        </div>
+        <div style="position:absolute; right: 16px; top: 16px" class="badg">Puntos: <span id="catchScore">0</span></div>
+      </div>
+    </section>
+
+    <!-- SNAKE VIEW -->
+    <section class="view" id="viewSnake">
+      <div class="topbar"><button class="btn ghost" data-back>← Volver</button><div class="badg">Puntaje objetivo: 15</div></div>
+      <div class="game-shell">
+        <canvas id="snakeCanvas" width="360" height="360"></canvas>
+      </div>
+      <div class="pad" id="snakePad">
+        <div class="invis"></div>
+        <button data-dir="up">↑</button>
+        <div class="invis"></div>
+        <button data-dir="left">←</button>
+        <div class="invis"></div>
+        <button data-dir="right">→</button>
+        <div class="invis"></div>
+        <button data-dir="down">↓</button>
+        <div class="invis"></div>
+      </div>
+    </section>
+
+    <!-- TRIVIA VIEW -->
+    <section class="view" id="viewTrivia">
+      <div class="topbar"><button class="btn ghost" data-back>← Volver</button><div class="badg">Responde 7 preguntas</div></div>
+      <div class="card" id="triviaCard">
+        <div id="triviaQ" class="h"></div>
+        <div id="triviaOpts" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(180px,1fr));"></div>
+        <div style="margin-top: 8px" class="muted" id="triviaProg"></div>
+      </div>
+    </section>
+
+    <!-- REVEAL VIEW -->
+    <section class="view" id="viewReveal">
+      <div class="topbar"><button class="btn ghost" data-back>← Volver</button><div class="badg">Revela 85% de la imagen</div></div>
+      <div class="game-shell" style="height:420px">
+        <canvas id="revealCanvas" width="520" height="360"></canvas>
+      </div>
+      <div class="hint" style="text-align:center; margin-top:8px">Toca o arrastra para “rascar” ✨</div>
+    </section>
+
+    <!-- ESCAPE VIEW -->
+    <section class="view" id="viewEscape">
+      <div class="topbar"><button class="btn ghost" data-back>← Volver</button><div class="badg">Abre la caja (código de 4 dígitos)</div></div>
+      <div class="card">
+        <div class="h">Pista 1</div>
+        <div class="muted">El día especial está en formato <b>MMDD</b>. <i>Septiembre</i> y <i>décimo</i> te guían…</div>
+      </div>
+      <div class="card">
+        <div class="h">Pista 2</div>
+        <div class="muted">Un amigo robot dice: <span style="font-family:monospace">0831 → 0831</span> (agosto 31). ¿Y el tuyo? 😉</div>
+      </div>
+      <div class="card">
+        <div class="h">Introduce el código</div>
+        <div style="display:flex; gap:8px; align-items:center">
+          <input id="escCode" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="MMDD" style="flex:0 0 120px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2); background:#0f0f10; color:#fff" />
+          <button class="btn" id="escBtn">Abrir</button>
+          <div id="escMsg" class="muted"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINALE VIEW -->
+    <section class="view" id="viewFinale">
+      <div class="topbar"><button class="btn ghost" data-back>← Volver</button><div class="badg">Sorpresa final ✨</div></div>
+      <div class="card" style="text-align:center">
+        <div style="font-size: 24px; margin-bottom: 10px">¡Feliz cumpleaños, <span id="friendNameFinal">Mi amiga</span>! 🎉</div>
+        <div class="robot" style="margin: 12px auto 20px;">
+          <div class="body"></div>
+          <div class="eye left"><div class="pupil"></div></div>
+          <div class="eye right"><div class="pupil"></div></div>
+          <div class="arm left"></div>
+          <div class="arm right"></div>
+          <div class="treads"></div>
+          <canvas class="confetti" id="confettiCanvas" width="600" height="300"></canvas>
+        </div>
+        <div class="muted">Un robotito estilo Wall‑E vino a desearte un día lleno de amor, ballenas felices, gatitos ronroneando y lecturas bonitas. 💜</div>
+      </div>
+    </section>
+
+    <div class="footer">Hecho con cariño, Gaby.</div>
+  </div>
+
+  <script>
+    /******************************
+     * CONFIGURA TU REGALO AQUÍ   *
+     ******************************/
+    const FRIEND_NAME = "Liss";   // 👉 cambia por el nombre de tu amiga
+    const UNLOCK_AFTER = 3;        // 👉 cuántos juegos debe completar para desbloquear el final
+    document.getElementById('friendNameView').textContent = FRIEND_NAME;
+    document.getElementById('friendNameFinal').textContent = FRIEND_NAME;
+
+    // Estado de progreso
+    const progress = {
+      platformer:false,
+      catch:false,
+      snake:false,
+      trivia:false,
+      reveal:false,
+      escape:false,
+    };
+
+    function saveProgress(){ localStorage.setItem('bdayProgress', JSON.stringify(progress)); }
+    function loadProgress(){
+      try { const p = JSON.parse(localStorage.getItem('bdayProgress')); if(p){ Object.assign(progress,p); } } catch(e){}
+      updateProgressUI();
+    }
+
+    function updateProgressUI(){
+      const done = Object.values(progress).filter(Boolean).length;
+      document.getElementById('progressText').textContent = `Progreso: ${done}/6`;
+      const pct = Math.round(done/6*100);
+      document.getElementById('progressBar').style.width = pct + '%';
+      const btnFinale = document.getElementById('btnFinale');
+      btnFinale.disabled = done < UNLOCK_AFTER;
+    }
+
+    // Navegación de vistas
+    const views = {
+      menu: document.getElementById('viewMenu'),
+      platformer: document.getElementById('viewPlatformer'),
+      catch: document.getElementById('viewCatch'),
+      snake: document.getElementById('viewSnake'),
+      trivia: document.getElementById('viewTrivia'),
+      reveal: document.getElementById('viewReveal'),
+      escape: document.getElementById('viewEscape'),
+      finale: document.getElementById('viewFinale'),
+    };
+    function showView(key){
+      Object.values(views).forEach(v=>v.classList.remove('show'));
+      (views[key]||views.menu).classList.add('show');
+    }
+
+    // botones del menú
+    document.querySelectorAll('[data-open]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const key = b.getAttribute('data-open');
+        showView(key);
+        // arranque por juego
+        if(key==='platformer') startPlatformer();
+        if(key==='catch') startCatch();
+        if(key==='snake') startSnake();
+        if(key==='trivia') startTrivia();
+        if(key==='reveal') startReveal();
+      });
+    });
+    document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click', ()=>{ showView('menu'); }));
+
+    document.getElementById('btnFinale').addEventListener('click', ()=>{ showView('finale'); startConfetti(); });
+    document.getElementById('btnReset').addEventListener('click', ()=>{
+      Object.keys(progress).forEach(k=>progress[k]=false);
+      saveProgress(); updateProgressUI(); alert('Progreso reiniciado');
+    });
+
+    loadProgress();
+
+    /***********************
+     * 1) PLATFORMA GATO   *
+     ***********************/
+    let platRunning=false, platRAF=null;
+    function startPlatformer(){
+      const c = document.getElementById('platCanvas');
+      const ctx = c.getContext('2d');
+      const W = c.width, H = c.height;
+      let keys = {left:false,right:false,up:false};
+      let player = {x:60,y:H-60,w:26,h:26,vx:0,vy:0, onGround:false};
+      const gravity = 0.6, friction=0.85, speed=0.8, jump=-10.5;
+      // Añadí más plataformas para hacer el nivel más largo y alto
+      const platforms = [
+        {x:0,y:H-20,w:W,h:20}, // ground
+        {x:110,y:H-80,w:120,h:14},
+        {x:300,y:H-130,w:110,h:14},
+        {x:430,y:H-200,w:90,h:14},
+        {x:350,y:H-270,w:80,h:14}, // Nueva plataforma
+        {x:200,y:H-320,w:100,h:14}, // Nueva plataforma
+        {x:50,y:H-250,w:90,h:14}, // Nueva plataforma
+      ];
+      // Moví la estrella más arriba para que el recorrido sea más largo
+      const star = {x: 80, y: H-290, r: 10};
+
+      function keyDown(e){ if(e.code==='ArrowLeft') keys.left=true; if(e.code==='ArrowRight') keys.right=true; if(e.code==='Space' || e.code==='ArrowUp') keys.up=true; }
+      function keyUp(e){ if(e.code==='ArrowLeft') keys.left=false; if(e.code==='ArrowRight') keys.right=false; if(e.code==='Space' || e.code==='ArrowUp') keys.up=false; }
+      window.addEventListener('keydown', keyDown);
+      window.addEventListener('keyup', keyUp);
+
+      // Touch buttons
+      document.querySelectorAll('#platPad [data-key]').forEach(btn=>{
+        const code = btn.getAttribute('data-key');
+        btn.onpointerdown = ()=>{ if(code==='ArrowLeft') keys.left=true; if(code==='ArrowRight') keys.right=true; if(code==='Space' || code==='ArrowUp') keys.up=true; };
+        btn.onpointerup = ()=>{ if(code==='ArrowLeft') keys.left=false; if(code==='ArrowRight') keys.right=false; if(code==='Space' || code==='ArrowUp') keys.up=false; };
+      });
+
+      function rectsCollide(a,b){ return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
+
+      function update(){
+        if(keys.left) player.vx -= speed;
+        if(keys.right) player.vx += speed;
+        player.vx *= friction;
+        player.vy += gravity;
+
+        // Movement
+        player.x += player.vx;
+        player.y += player.vy;
+        player.onGround=false;
+
+        // Collisions
+        for(const p of platforms){
+          const r = {x:p.x, y:p.y, w:p.w, h:p.h};
+          if(rectsCollide(player,r)){
+            // from top
+            if(player.y + player.h - player.vy <= p.y){
+              player.y = p.y - player.h; player.vy = 0; player.onGround=true;
+            } else if (player.y - player.vy >= p.y + p.h){
+              player.y = p.y + p.h; player.vy = 0;
+            } else if (player.x + player.w - player.vx <= p.x){
+              player.x = p.x - player.w; player.vx = 0;
+            } else if (player.x - player.vx >= p.x + p.w){
+              player.x = p.x + p.w; player.vx = 0;
+            }
+          }
+        }
+
+        // Jump
+        if(keys.up && player.onGround){ player.vy = jump; }
+
+        // Bounds
+        if(player.x<0) player.x=0; if(player.x+player.w>W) player.x=W-player.w;
+        if(player.y>H- player.h){ player.y=H-player.h; player.vy=0; player.onGround=true; }
+
+        // Star reach
+        const dx = player.x+player.w/2 - star.x; const dy = player.y+player.h/2 - star.y;
+        if(Math.hypot(dx,dy) < star.r + 12){
+          winPlatformer(); return;
+        }
+      }
+
+      function draw(){
+        ctx.clearRect(0,0,W,H);
+        // bg
+        ctx.fillStyle = '#0d0d12'; ctx.fillRect(0,0,W,H);
+        // platforms
+        ctx.fillStyle = '#222';
+        platforms.forEach(p=>{ ctx.fillRect(p.x,p.y,p.w,p.h); });
+        // player (gatito cabeza cuadrada)
+        ctx.fillStyle = '#f3d3d3'; ctx.fillRect(player.x,player.y,player.w,player.h);
+        ctx.fillStyle = '#333'; ctx.fillRect(player.x+6,player.y+6,4,4); ctx.fillRect(player.x+16,player.y+6,4,4);
+        // star
+        ctx.fillStyle = '#ffd166';
+        ctx.beginPath(); ctx.arc(star.x, star.y, star.r, 0, Math.PI*2); ctx.fill();
+        // tip
+        ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font='12px monospace'; ctx.fillText('← → para moverte, Espacio para saltar', 10, 16);
+      }
+
+      function loop(){
+        if(!platRunning) return;
+        update();
+        draw();
+        platRAF = requestAnimationFrame(loop);
+      }
+
+      function cleanup(){ platRunning=false; cancelAnimationFrame(platRAF); window.removeEventListener('keydown', keyDown); window.removeEventListener('keyup', keyUp); }
+
+      function winPlatformer(){ cleanup();
+        progress.platformer = true; saveProgress(); updateProgressUI();
+        alert('¡Nivel completado! ⭐'); showView('menu');
+      }
+
+      platRunning=true; loop();
+    }
+
+    /*************************
+     * 2) ATRAPA LOS REGALOS *
+     *************************/
+    let catchTimer = null, catchRunning=false;
+    function startCatch(){
+      const area = document.getElementById('catchArea');
+      const catcher = document.getElementById('catcher');
+      const scoreEl = document.getElementById('catchScore');
+      // Aumenté la cantidad necesaria para ganar y reduje la frecuencia de spawn
+      let score = 0, spawns=0, needed=20; // Cambiado de 12 a 20
+
+      function moveCatcher(x){
+        const rect = area.getBoundingClientRect();
+        const cx = Math.max(40, Math.min(rect.width-40, x - rect.left));
+        catcher.style.left = cx + 'px'; catcher.style.transform = 'translateX(-50%)';
+      }
+      area.onpointermove = (e)=>moveCatcher(e.clientX);
+
+      function spawn(){
+        const d = document.createElement('div');
+        d.className='drop';
+        const x = Math.random()*(area.clientWidth-24)+12; const size = 18+Math.random()*10; const speed = 1.5+Math.random()*1.5;
+        Object.assign(d.style, { position:'absolute', left:(x-size/2)+'px', top:'-24px', width:size+'px', height:size+'px', borderRadius:'50%', background:'radial-gradient(circle at 30% 30%, #fff, #ff8aa0)', boxShadow:'0 6px 16px rgba(255,0,60,.3)'});
+        area.appendChild(d);
+        let y = -24; const loop = ()=>{
+          if(!catchRunning){ d.remove(); return; }
+          y += speed; d.style.top = y+'px';
+          // collide with catcher
+          const dr = d.getBoundingClientRect(); const cr = catcher.getBoundingClientRect();
+          if(!(dr.right<cr.left || dr.left>cr.right || dr.bottom<cr.top || dr.top>cr.bottom)){
+            d.remove(); score++; scoreEl.textContent=score; if(score>=needed){ return winCatch(); }
+            return;
+          }
+          if(y>area.clientHeight+24){ d.remove(); }
+          else requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+      }
+
+      function tick(){ spawns++; spawn(); if(spawns>60){ if(score>=needed) winCatch(); else loseCatch(); } } // Aumentado el límite de spawns de 40 a 60
+
+      function winCatch(){ stop(); progress.catch=true; saveProgress(); updateProgressUI(); alert('¡Buenísima! 🎁'); showView('menu'); }
+      function loseCatch(){ stop(); alert('Casi casi… vuelve a intentar 🤏'); }
+      function stop(){ clearInterval(catchTimer); catchRunning=false; Array.from(area.querySelectorAll('.drop')).forEach(el=>el.remove()); score=0; scoreEl.textContent='0'; spawns=0; }
+
+      stop(); catchRunning=true; catchTimer = setInterval(tick, 900); // Aumentado el intervalo de spawn de 600ms a 900ms
+    }
+
+    /****************
+     * 3) SNAKE     *
+     ****************/
+    let snakeLoop=null, snakeDir='right', snakeRunning=false;
+    function startSnake(){
+      const c = document.getElementById('snakeCanvas');
+      const ctx = c.getContext('2d');
+      const size = 15; const cols = c.width/size|0; const rows = c.height/size|0;
+      let snake = [{x:5,y:5}], apple = randApple(); let speed=180; let target=15; let grow=0; // Reducida velocidad (aumentado intervalo a 180ms) y aumentado objetivo a 15
+      snakeDir='right'; snakeRunning=true; if(snakeLoop) clearInterval(snakeLoop);
+
+      function randApple(){ return {x: (Math.random()*cols|0), y: (Math.random()*rows|0)}; }
+      function setDir(d){ if((d==='left' && snakeDir!=='right')||(d==='right' && snakeDir!=='left')||(d==='up' && snakeDir!=='down')||(d==='down' && snakeDir!=='up')) snakeDir=d; }
+
+      window.onkeydown = (e)=>{ if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code)){ e.preventDefault(); setDir({ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'}[e.code]); } };
+      document.querySelectorAll('#snakePad [data-dir]').forEach(b=> b.onclick = ()=> setDir(b.getAttribute('data-dir')));
+
+      function step(){
+        if(!snakeRunning){ return; }
+        const head = {...snake[0]};
+        if(snakeDir==='left') head.x--; if(snakeDir==='right') head.x++; if(snakeDir==='up') head.y--; if(snakeDir==='down') head.y++;
+        // wrap
+        if(head.x<0) head.x=cols-1; if(head.x>=cols) head.x=0; if(head.y<0) head.y=rows-1; if(head.y>=rows) head.y=0;
+        // self hit
+        if(snake.some((p,i)=> i>4 && p.x===head.x && p.y===head.y)){ return lose(); }
+        snake.unshift(head);
+        // eat
+        if(head.x===apple.x && head.y===apple.y){ apple = randApple(); grow+=2; if(snake.length-1>=target) return win(); }
+        if(grow>0) grow--; else snake.pop();
+        draw();
+      }
+
+      function draw(){
+        ctx.fillStyle = '#0e0e13'; ctx.fillRect(0,0,c.width,c.height);
+        // apple
+        ctx.fillStyle = '#ff6b6b'; ctx.fillRect(apple.x*size, apple.y*size, size, size);
+        // snake
+        ctx.fillStyle = '#d4d0c7';
+        snake.forEach((p,i)=>{ ctx.fillRect(p.x*size, p.y*size, size-1, size-1); });
+        ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font='12px monospace'; ctx.fillText('Usa flechas o los botones', 8, 16);
+        ctx.fillText('Objetivo: ' + target, 8, 30); // Usa la variable target
+      }
+
+      function win(){ snakeRunning=false; clearInterval(snakeLoop); progress.snake=true; saveProgress(); updateProgressUI(); alert('¡Snake completo! 🤖'); showView('menu'); }
+      function lose(){ snakeRunning=false; clearInterval(snakeLoop); alert('Oops, te mordiste la cola 🐍 Inténtalo otra vez'); }
+
+      draw(); snakeLoop = setInterval(step, speed);
+    }
+
+    /****************
+     * 4) TRIVIA    *
+     ****************/
+    const TRIVIA = [
+      { q: '¿Qué animal marino gigante le encanta?', opts:['Delfines','Ballenas','Focas','Tiburones'], a:1 },
+      { q: '¿Qué colores prefiere?', opts:['Negro, blanco y vino','Verde y amarillo','Azul y naranja','Rosa y celeste'], a:0 },
+      { q: 'Película favorita robot‑tierna:', opts:['Wall‑E','Terminator','Ex Machina','Robots (2005)'], a:0 },
+      { q: '¿Team?', opts:['EXO','BTS','Seventeen','Stray Kids'], a:1 },
+      { q: '¿Animal pequeñito favorito?', opts:['Perritos','Gatitos','Hamsters','Pajaritos'], a:1 },
+      { q: 'Plan ideal de cumple:', opts:['Leer y jugar','Solo tele','Correr maratón','Lavandería'], a:0 },
+      // Añadí dos preguntas más
+      { q: '¿Qué le gusta más leer?', opts:['Fantasía épica','Romance','Misterio','Ciencia Ficción'], a:3 },
+      { q: 'Momento favorito del día:', opts:['Mañana con café','Tarde tranquila','Noche de pelis','Madrugada serena'], a:1 },
+    ];
+    function startTrivia(){
+      const card = document.getElementById('triviaCard');
+      const qEl = document.getElementById('triviaQ');
+      const optsEl = document.getElementById('triviaOpts');
+      const progEl = document.getElementById('triviaProg');
+      let idx=0, correct=0; render();
+
+      function render(){
+        const item = TRIVIA[idx];
+        if(!item){
+          progress.trivia=true; saveProgress(); updateProgressUI();
+          card.innerHTML = `<div class="h">¡Trivia completada! ✔️</div><div class="muted">Aciertos: ${correct}/${TRIVIA.length}</div><div style="margin-top:10px"><button class="btn" onclick="showView('menu')">Volver al menú</button></div>`;
+          return;
+        }
+        qEl.textContent = `(${idx+1}/${TRIVIA.length}) ${item.q}`;
+        optsEl.innerHTML = '';
+        item.opts.forEach((t,i)=>{
+          const b = document.createElement('button');
+          b.className='btn ghost'; b.style.textAlign='left'; b.textContent = t;
+          b.onclick = ()=> sel(i);
+          optsEl.appendChild(b);
+        });
+        progEl.textContent = `Aciertos: ${correct}`;
+      }
+      function sel(choice){
+        const item = TRIVIA[idx];
+        if(choice === item.a){ correct++; flash(card,'ok'); } else { flash(card,'bad'); }
+        idx++; render();
+      }
+      function flash(el,type){ el.style.transition='background .3s'; el.style.background = type==='ok' ? 'rgba(46,204,113,.12)' : 'rgba(231,76,60,.12)'; setTimeout(()=>{ el.style.background=''; },300);
+      }
+    }
+
+    /***********************
+     * 5) REVEAL / RASCAR  *
+     ***********************/
+    let revealDown=false, revealPct=0;
+    function startReveal(){
+      const c = document.getElementById('revealCanvas'); const ctx = c.getContext('2d');
+      // draw hidden message underneath
+      function drawHidden(){
+        ctx.fillStyle = '#0e0e13'; ctx.fillRect(0,0,c.width,c.height);
+        // stars background
+        for(let i=0;i<80;i++){ ctx.fillStyle='rgba(255,255,255,'+(Math.random()*0.6+0.2)+')'; ctx.fillRect(Math.random()*c.width, Math.random()*c.height, 2, 2); }
+        // whale silhouette
+        ctx.fillStyle = '#6aa0ff'; ctx.globalAlpha=.25; ctx.beginPath(); ctx.ellipse(150,200,80,40,0,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+        // robot text - ACTUALIZADO CON TU MENSAJE ESPECIAL
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 24px system-ui'; 
+        ctx.fillText('Feliz cumple, Liss!', 140, 100);
+        ctx.font = '14px system-ui'; 
+        ctx.fillText('Agradecida con ser parte de tu vida', 80, 130);
+        ctx.fillText('en este cumpleaños, espero podamos', 80, 150);
+        ctx.fillText('compartir más juntas.', 120, 170);
+        ctx.font = 'italic 14px system-ui';
+        ctx.fillText('Con amor, la mitad que te faltaba - Gaby', 90, 200);
+      }
+      drawHidden();
+      // overlay
+      const overlay = ctx.getImageData(0,0,c.width,c.height); // snapshot
+      ctx.fillStyle = '#2b2b2e'; ctx.globalAlpha=0.96; ctx.fillRect(0,0,c.width,c.height); ctx.globalAlpha=1;
+
+      const erase = (x,y)=>{ ctx.globalCompositeOperation='destination-out'; ctx.beginPath(); ctx.arc(x,y,20,0,Math.PI*2); ctx.fill(); ctx.globalCompositeOperation='source-over'; };
+      const pos = (e)=>{ const r = c.getBoundingClientRect(); const x = (e.touches?e.touches[0].clientX:e.clientX)-r.left; const y = (e.touches?e.touches[0].clientY:e.clientY)-r.top; return {x,y}; };
+
+      c.onpointerdown = (e)=>{ revealDown=true; const {x,y} = pos(e); erase(x,y); check(); };
+      c.onpointermove = (e)=>{ if(!revealDown) return; const {x,y} = pos(e); erase(x,y); if(Math.random()<.2) check(); };
+      c.onpointerup = ()=>{ revealDown=false; check(); };
+      c.onpointerleave = ()=>{ revealDown=false; };
+
+      function check(){
+        // estimate revealed percent by sampling every 8th pixel
+        const data = ctx.getImageData(0,0,c.width,c.height).data; let transparent=0, total=0;
+        for(let i=3;i<data.length;i+=32){ // alpha channel every 8px (4*8)
+          total++; if(data[i]===0) transparent++;
+        }
+        revealPct = Math.round(transparent/total*100);
+        // Aumentado el porcentaje necesario para ganar del 75% al 85%
+        if(revealPct>=85){ progress.reveal=true; saveProgress(); updateProgressUI(); alert('¡Revelado! 🎨'); showView('menu'); }
+      }
+    }
+
+    /***********************
+     * 6) ESCAPE ROOM      *
+     ***********************/
+    document.getElementById('escBtn').addEventListener('click', ()=>{
+      const v = (document.getElementById('escCode').value||'').trim();
+      const msg = document.getElementById('escMsg');
+      if(v === '0910'){ msg.textContent = '¡Abierto! 🎉'; msg.style.color = 'var(--ok)'; progress.escape=true; saveProgress(); updateProgressUI(); setTimeout(()=>{ showView('menu'); }, 600); }
+      else { msg.textContent = 'Código incorrecto'; msg.style.color = 'var(--bad)'; }
+    });
+
+    /***********************
+     * 7) FINALE CONFETTI  *
+     ***********************/
+    let confettiTimer=null;
+    function startConfetti(){
+      const c = document.getElementById('confettiCanvas'); const ctx = c.getContext('2d');
+      const W = c.width = c.parentElement.clientWidth; const H = c.height = 260;
+      const parts = Array.from({length:160}, ()=>({ x:Math.random()*W, y:Math.random()*-H, vy:1+Math.random()*3, vx:-1+Math.random()*2, s:2+Math.random()*4, a: Math.random()*Math.PI*2 }));
+      function step(){ ctx.clearRect(0,0,W,H); parts.forEach(p=>{ p.y+=p.vy; p.x+=p.vx; p.a+=0.05; if(p.y>H) { p.y=-20; p.x=Math.random()*W; } ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle = `hsl(${(p.x/W)*360},80%,70%)`; ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s); ctx.restore(); }); }
+      if(confettiTimer) clearInterval(confettiTimer); confettiTimer = setInterval(step, 16);
+    }
+
+  </script>
+</body>
+</html>
